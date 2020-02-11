@@ -1,0 +1,61 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>SSL Metrics - Chart</title>
+</head>
+
+<body style="overflow: hidden;">
+    <canvas id="main-chart"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js"></script>
+    <script>
+        var canv = document.getElementById('main-chart');
+        canv.setAttribute("width", window.innerWidth - 100);
+        canv.setAttribute("height", window.innerHeight - 100);
+        canv.setAttribute("style", "padding-left: 50px;");
+        var chartDatasets = JSON.parse('<%- chartDatasets %>');
+        var dates = JSON.parse('<%- dates %>');
+        var ctx = canv.getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates.reverse(),
+                datasets: chartDatasets
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'SSL Metrics'
+                },
+                tooltips: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: true
+                },
+                scales: {
+                    xAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Date'
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Value'
+                        }
+                    }]
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

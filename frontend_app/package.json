@@ -11,7 +11,10 @@
   "dependencies": {
     "axios": "^0.19.2",
     "csv-parser": "^2.3.2",
-    "express": "^4.17.1"
+    "ejs": "^3.0.1",
+    "express": "^4.17.1",
+    "knex": "^0.20.8",
+    "sqlite3": "^4.1.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.2"
