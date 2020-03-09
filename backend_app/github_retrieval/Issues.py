@@ -78,13 +78,15 @@ Actually scrapes, sanitizes, and stores the data returned from the API call.
                 updated_at = x["updated_at"].replace(
                     "T", " ").replace("Z", " ")
                 # TODO ry except to make sure you can parse issues that are still open
-                closed_at = x["closed_at"].replace("T", " ").replace("Z", " ")
                 created_at = datetime.strptime(
                     created_at, "%Y-%m-%d %H:%M:%S ")
                 updated_at = datetime.strptime(
                     updated_at, "%Y-%m-%d %H:%M:%S ")
-                closed_at = datetime.strptime(closed_at, "%Y-%m-%d %H:%M:%S ")
-
+                try:
+                    closed_at = x["closed_at"].replace("T", " ").replace("Z", " ")
+                    closed_at = datetime.strptime(closed_at, "%Y-%m-%d %H:%M:%S ")
+                except:
+                    closed_at = None
                 # Stores the data into a SQL database
                 sql = "INSERT INTO ISSUES (user, user_id, issue_id, comments_url, node_id, number, title, labels, state, locked, assignee, assignees, comments, created_at, updated_at, closed_at, body, comment_user, comment_user_id, comment_id, issue_url, comment_node_id, comment_created_at, comment_updated_at, comment_body) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"
                 self.dbCursor.execute(sql, (str(user), str(user_id), str(issue_id), str(comments_url), str(node_id), str(number), str(title), str(labels), str(state), str(locked), str(assignee), str(assignees), str(comments), str(created_at), str(updated_at), str(

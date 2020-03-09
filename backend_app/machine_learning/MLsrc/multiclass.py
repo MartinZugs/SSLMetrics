@@ -8,123 +8,58 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import f1_score
 from sklearn.svm import SVC
-# from sklearn import LogisticRegression as lr
 import re
 import os
 import numpy as np
-
+import pickle
+from model_methods import model_methods
 start = time.time()
 
 my_path = os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
-path = os.path.join(my_path, "stopWords\\stopWords.txt")
-
-stop_words_file = open(path, 'r')
-stop_words = []
-for line in stop_words_file.readlines():
-	new_split = line.split("\n")
-	stop_words.append(new_split[0])
-
-
-# data_path = "../../ML CSVs/*.CSV"
-
-# all_files = pd.DataFrame()
-# for filename in glob.glob(data_path):
-# 	current_file = pd.read_csv(filename)
-# 	all_files = pd.concat([all_files, current_file])
-
 
 # Label (0 = Bug, 1 = Feature Request, 2 = Not 1 or 0)
 labeled_data_path_1 = os.path.join(my_path, 'SSL1.xlsx')
 
 all_files = pd.read_excel(labeled_data_path_1)
 
-#all_files = pd.concat([labeled_contents_1], axis=0, sort=False)
-
 all_files.reset_index(inplace = True, drop = True)
+all_files.sample(frac=1).reset_index(drop=True)
 
-# all_title_and_body = []
-# for title, body in zip(all_files['title'], all_files['body']):
-# 	split_title = re.split('\W+', title)
-# 	split_body = re.split('\W+', body)
-# 	if 'b' in split_title:
-# 		split_title.remove('b')
-# 	if 'b' in split_body:
-# 		split_body.remove('b')
-# 	if 'n' in split_title:
-# 		split_title.remove('n')
-# 	if 'n' in split_body:
-# 		split_body.remove('n')
-# 	if 'r' in split_title:
-# 		split_title.remove('r')
-# 	if 'r' in split_body:
-# 		split_body.remove('r')
-# 	if '' in split_title:
-# 		split_title.remove('')
-# 	if '' in split_body:
-# 		split_body.remove('')
-# 	all_title_and_body.append([split_title, split_body])
+for x in range(1,5):
+	# .6, .6, .57, .5
+	data = model_methods(all_files[0:x*100])
+	X_train, X_test, y_train, y_test = data.process_data()
 
-# all_issues = []
-# for issue in all_title_and_body:
-# 	current_issue = []
-# 	for item in issue[0]:
-# 		if item in stop_words:
-# 			continue
-# 		else:
-# 			current_issue.append(item)
-# 	for item in issue[1]:
-# 		if item in stop_words:
-# 			continue
-# 		else:
-# 			current_issue.append(item)
-# 	all_issues.append(current_issue)
+	filename = 'finalized_model.pickle'
 
-# print(all_issues)
+	retrain = input("Do you want to retrain or use the saved file? (y/n) ")
 
-all_title_and_body = []
-for title, body in zip(all_files['title'], all_files['body']):
-	all_title_and_body.append(str(title) + " " + str(body))
+	if (retrain == "y"):
+		classifier = OneVsRestClassifier(SVC(class_weight='balanced')).fit(X_train, y_train)
 
+		parameters = {
+			"estimator__C": [0.1, 1, 10, 100, 1000],
+			"estimator__kernel": ["linear", "rbf"], #"poly",
+			"estimator__degree":[0, 1, 2, 3, 4, 5, 6],
+			"estimator__gamma":[0.1, 1, 10, 100]
+		}
 
-# create the transform
-vectorizer = CountVectorizer(stop_words='english', min_df=10, max_df=160)
+		final_model = GridSearchCV(classifier, param_grid=parameters, verbose=4)
 
-# tokenize and build vocab
-vectorizer.fit(all_title_and_body)
+		final_model.fit(X_train, y_train)
 
-# summarize
-# print(vectorizer.vocabulary_)
+		pickle.dump(final_model, open(filename, 'wb'))
 
-# encode document
-vector = vectorizer.transform(all_title_and_body)
+	else:
+		final_model = pickle.load(open(filename, 'rb'))
 
-# summarize encoded vector
-X = vector.toarray()
+	predictions = final_model.predict(X_test)
 
-y = all_files['label']
+	print(predictions)
 
-X_train, X_test, y_train, y_test = train_test_split( X, y )
+	accuracy_scores = accuracy_score(y_test, predictions)
 
-classifier = OneVsRestClassifier(SVC(class_weight='balanced')).fit(X_train, y_train)
-
-parameters = {
-    "estimator__C": [0.1, 1, 10, 100, 1000],
-    "estimator__kernel": ["linear","poly","rbf"],
-    "estimator__degree":[0, 1, 2, 3, 4, 5, 6],
-	"estimator__gamma":[0.1, 1, 10, 100],
-}
-
-model_tuning = GridSearchCV(classifier, param_grid=parameters, verbose=2)
-
-model_tuning.fit(X_train, y_train)
-
-predictions = model_tuning.predict(X_test)
-
-print(predictions)
-
-accuracy_scores = accuracy_score(y_test, predictions)
-
-print("Accuracy: " + str(accuracy_scores))
+	print("Accuracy: " + str(accuracy_scores))
 
 end = time.time()
 

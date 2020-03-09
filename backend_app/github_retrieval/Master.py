@@ -4,6 +4,7 @@ from sqlite3 import Cursor, Connection
 import Commits
 import Issues
 import Pulls
+import LOC_and_NOC
 
 
 # import Lines_Of_Code_And_Num_Of_Chars
@@ -59,7 +60,7 @@ Calls classes and methods to analyze and interpret data.
         Issues.Logic(gha=self.gha, data=self.data[0], responseHeaders=self.data[1],
                      cursor=self.dbCursor, connection=self.dbConnection).parser()
 
-        # Lines_Of_Code_And_Num_Of_Chars.Main(username, repository)
+        LOC_and_NOC.Main(self.githubUser, self.githubRepo, self.dbCursor, self.dbConnection, self.githubToken)
 
         # Adds all of the datetimes to the SQL database
         # Bewary of changing
